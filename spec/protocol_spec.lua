@@ -49,4 +49,12 @@ describe("lredis.protocol module", function()
 			protocol.default_read_response(write_to_temp_file "*3\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n")
 		)
 	end)
+	
+	it("encodes non-strings as strings", function()
+		os.setlocale('C')
+		local check = { (100000000000000000000/7), (function() end), {}, false, true, ["nil"]=nil, "banana" }
+		for k, v in pairs(check) do
+			assert.same(("$%d\r\n%s\r\n"):format(#(tostring(v)), tostring(v)), protocol.encode_bulk_value(v))
+		end
+	end)
 end)

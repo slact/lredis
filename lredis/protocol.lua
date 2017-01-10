@@ -1,16 +1,16 @@
 -- Documentation on the redis protocol found at http://redis.io/topics/protocol
 
 
--- Encode a redis bulk string
-local function encode_bulk_string(str)
-	if type(str) ~= "string" then
-		str = tostring(str)
+-- Encode a redis bulk value, stringifying it when needed
+local function encode_bulk_value(val)
+	if type(val) ~= "string" then
+		val = tostring(val)
 	end
-	return string.format("$%d\r\n%s\r\n", #str, str)
+	return string.format("$%d\r\n%s\r\n", #val, val)
 end
 
 -- Encode a redis request
--- Requests are always just an array of bulk strings
+-- Requests are always just an array of bulk stringifiable values
 local function encode_request(arg)
 	local n = arg.n or #arg
 	assert(n > 0, "need at least one argument")
@@ -18,7 +18,7 @@ local function encode_request(arg)
 		[0] = string.format("*%d\r\n", n);
 	}
 	for i=1, n do
-		str[i] = encode_bulk_string(arg[i])
+		str[i] = encode_bulk_value(arg[i])
 	end
 	return table.concat(str, nil, 0, n)
 end
@@ -92,7 +92,7 @@ local function default_read_response(file)
 end
 
 return {
-	encode_bulk_string = encode_bulk_string;
+	encode_bulk_value = encode_bulk_value;
 	encode_request = encode_request;
 	encode_inline = encode_inline;
 
